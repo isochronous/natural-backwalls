@@ -1,0 +1,3 @@
+title: "Natural Backwalls"
+description: "Gives every biome the natural backwall tiles the Aquatic Planet Pack adds behind its own biomes. Each biome gets a configurable material chosen from that biome's own solids, with configurable coverage. New worlds only; backwalls are placed during world generation."
+staticID: "Isochronous.NaturalBackwalls"

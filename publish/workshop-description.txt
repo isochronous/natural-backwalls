@@ -1,0 +1,20 @@
+Natural backwall tiles in every biome, not just the Aquatic Planet Pack's beach, reef, kelp forest, and abyss.
+
+[h2]How it works[/h2]
+The Aquatic pack has no special backwall algorithm. Its subworlds name a backwall noise tree and its biome files carry a "_backwall" element band, which the game samples exactly like ordinary terrain bands and writes wherever the result is a solid. This mod adds the same data to every other biome during world generation, using a copy of the pack's reef noise, so the pack itself is not required.
+
+[h2]Options[/h2]
+[list]
+[*]One dropdown per biome family (Sandstone, Forest, Tundra, Caustic, Marsh, Ocean, Oily, Rust, Magma, Barren, and the Spaced Out, Frosty Planet, and Prehistoric Planet biomes when active). Each lists the solids found in that biome, plus None. Want ice walls behind your tundra or lead behind the oil biome? Pick them.
+[*]Coverage: the fraction of cells with a backwall. 0.2 by default, like the pack's reef. Starting biomes have their own value, full coverage by default, like the pack's beach.
+[/list]
+
+[h2]Good to know[/h2]
+[list]
+[*]New worlds only. Backwalls are placed by world generation, so existing colonies are unchanged.
+[*]Surface and space subworlds are never given backwalls; a backwalled cell is no longer open to space.
+[*]Backwalls can be dug like the pack's, so they yield their material. The defaults are each biome's filler rock.
+[*]Biomes the Aquatic pack already configures are left as they are.
+[/list]
+
+Source and issues: https://github.com/isochronous/natural-backwalls

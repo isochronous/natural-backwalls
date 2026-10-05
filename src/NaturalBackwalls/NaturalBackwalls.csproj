@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\common\oni-mod.props" />
+
+  <PropertyGroup>
+    <AssemblyName>NaturalBackwalls</AssemblyName>
+    <RootNamespace>NaturalBackwalls</RootNamespace>
+    <Version>0.1.0</Version>
+    <UsePLib>true</UsePLib>
+    <ReferenceUnityUI>true</ReferenceUnityUI>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- PLib options classes carry Newtonsoft attributes; the game ships Newtonsoft.Json. -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(GameLibsFolder)\Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\common\oni-mod.targets" />
+
+  <!-- The mod ships a worldgen noise tree; the game layers a mod's worldgen folder over its own. -->
+  <ItemGroup>
+    <DeployWorldgen Include="$(MSBuildProjectDirectory)\worldgen\**\*" />
+  </ItemGroup>
+  <Target Name="DeployWorldgen" AfterTargets="DeployToLocalMods" Condition="'$(ModDeployFolder)' != 'none'">
+    <Copy SourceFiles="@(DeployWorldgen)" DestinationFolder="$(ModDeployFolder)\worldgen\%(RecursiveDir)" />
+  </Target>
+
+</Project>
