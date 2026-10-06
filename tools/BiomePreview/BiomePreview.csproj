@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Standalone single-biome worldgen preview. Runs the game's own noise and band code
+       (Assembly-CSharp-firstpass + LibNoiseDotNet) outside the game; see Program.cs. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\common\oni-mod.props" />
+
+  <PropertyGroup>
+    <!-- .NET 8, not net48: the game's merged YamlDotNet uses BCL overloads that .NET Framework lacks. -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>BiomePreview</AssemblyName>
+    <RootNamespace>BiomePreview</RootNamespace>
+    <ModDeployFolder>none</ModDeployFolder>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(GameLibsFolder)\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="LibNoiseDotNet">
+      <HintPath>$(GameLibsFolder)\LibNoiseDotNet.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Tell the exe where the game's assemblies are, so it can resolve them at runtime. -->
+  <Target Name="WriteGameLibsPath" AfterTargets="Build">
+    <WriteLinesToFile File="$(TargetDir)gamelibs.txt" Lines="$(GameLibsFolder)" Overwrite="true" />
+  </Target>
+
+</Project>

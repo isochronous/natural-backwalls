@@ -5,16 +5,17 @@ The Aquatic pack has no special backwall algorithm. Its subworlds name a backwal
 
 [h2]Options[/h2]
 [list]
-[*]One dropdown per biome family (Sandstone, Forest, Tundra, Caustic, Marsh, Ocean, Oily, Rust, Magma, Barren, and the Spaced Out, Frosty Planet, and Prehistoric Planet biomes when active). Each lists the solids found in that biome, plus None. Want ice walls behind your tundra or lead behind the oil biome? Pick them.
-[*]Coverage: the fraction of cells with a backwall. 0.2 by default, like the pack's reef. Starting biomes have their own value, full coverage by default, like the pack's beach.
+[*]One row per biome family (Sandstone, Forest, Tundra, Caustic, Marsh, Ocean, Oily, Rust, Magma, Barren, and the Spaced Out, Frosty Planet, and Prehistoric Planet biomes when active): a material dropdown listing the solids found in that biome plus None, and a coverage box. Want ice walls behind your tundra or lead behind the oil biome? Pick them.
+[*]Coverage is the fraction of cells with a backwall; 0.4 by default, since rock biomes hide most backwalls behind solid tiles. A separate starting-biome coverage (1 by default, like the pack's beach) applies to whatever biome you start in.
 [/list]
 
 [h2]Good to know[/h2]
 [list]
 [*]New worlds only. Backwalls are placed by world generation, so existing colonies are unchanged.
+[*]Carved caves, lakes and geodes get backwalls as well. The game's own pass skips them, which is why the pack's logic leaves most rock-biome caves bare; turn it off in the options if you prefer that.
 [*]Surface and space subworlds are never given backwalls; a backwalled cell is no longer open to space.
 [*]Backwalls can be dug like the pack's, so they yield their material. The defaults are each biome's filler rock.
-[*]Biomes the Aquatic pack already configures are left as they are.
+[*]The Aquatic pack's own biomes are listed too, with the pack's values as defaults; leave them alone and their worldgen is untouched, or give them your own material and coverage.
 [/list]
 
 Source and issues: https://github.com/isochronous/natural-backwalls
