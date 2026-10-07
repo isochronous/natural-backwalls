@@ -22,6 +22,16 @@ namespace BiomePreview
 		private readonly ComboBox variantBox = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
 		private readonly Label variantLabel = new Label { Text = "Noise setup (this biome has several)", AutoSize = true, Padding = new Padding(0, 6, 0, 0) };
 		private readonly CheckBox vanillaBackwall = new CheckBox { Text = "Use the biome's vanilla backwall band", AutoSize = true };
+		private readonly ComboBox patternBox = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
+		private static readonly (string title, string tree)[] PatternList =
+		{
+			("Subworld's own / mod default (Reef)", null),
+			("Reef (pack)", "noise/NaturalBackwallsReef"),
+			("Kelp forest (pack)", "noise/NaturalBackwallsKelp"),
+			("Abyss (pack)", "noise/NaturalBackwallsAbyss"),
+			("Beach (pack)", "noise/NaturalBackwallsBeach"),
+			("Strange (base game)", "noise/SandstoneStrange"),
+		};
 		private readonly NumericUpDown coverageBox = new NumericUpDown { Minimum = 0, Maximum = 1, DecimalPlaces = 2, Increment = 0.05m, Value = 0.4m, Width = 80 };
 		private readonly NumericUpDown seedBox = new NumericUpDown { Minimum = 0, Maximum = int.MaxValue, Value = 1234, Width = 120 };
 		private readonly NumericUpDown widthBox = new NumericUpDown { Minimum = 16, Maximum = 1024, Value = 200, Width = 70 };
@@ -64,6 +74,9 @@ namespace BiomePreview
 			left.Controls.Add(variantBox);
 			left.Controls.Add(vanillaBackwall);
 			AddRow(left, "Backwall coverage (band size, 0 = none)", coverageBox);
+			foreach (var p in PatternList) patternBox.Items.Add(p.title);
+			patternBox.SelectedIndex = 0;
+			AddRow(left, "Backwall noise pattern", patternBox);
 			var seedRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
 			seedRow.Controls.Add(seedBox); seedRow.Controls.Add(randomButton);
 			AddRow(left, "Seed", seedRow);
@@ -90,6 +103,7 @@ namespace BiomePreview
 			variantBox.SelectedIndexChanged += (s, e) => MaybeGenerate();
 			vanillaBackwall.CheckedChanged += (s, e) => { coverageBox.Enabled = !(vanillaBackwall.Enabled && vanillaBackwall.Checked); MaybeGenerate(); };
 			coverageBox.ValueChanged += (s, e) => MaybeGenerate();
+			patternBox.SelectedIndexChanged += (s, e) => MaybeGenerate();
 			seedBox.ValueChanged += (s, e) => MaybeGenerate();
 			widthBox.ValueChanged += (s, e) => MaybeGenerate();
 			heightBox.ValueChanged += (s, e) => MaybeGenerate();
@@ -153,6 +167,7 @@ namespace BiomePreview
 			Cursor = Cursors.WaitCursor;
 			try
 			{
+				preview.BackwallNoiseOverride = PatternList[Math.Max(0, patternBox.SelectedIndex)].tree;
 				preview.NormaliseWidth = (int)normWidthBox.Value;
 				preview.NormaliseHeight = (int)normHeightBox.Value;
 				last = preview.Generate(variant, entry.Key, vanillaBackwall.Enabled && vanillaBackwall.Checked, (float)coverageBox.Value,

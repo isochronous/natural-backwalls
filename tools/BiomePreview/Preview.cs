@@ -216,6 +216,9 @@ namespace BiomePreview
 		/// </summary>
 		public int NormaliseWidth = 256, NormaliseHeight = 384;
 
+		/// <summary>A noise tree to use for the backwall instead of the subworld's own or the mod default, e.g. "noise/NaturalBackwallsKelp".</summary>
+		public string BackwallNoiseOverride;
+
 		/// <param name="vanillaBackwall">Use the biome's own "_backwall" table when it has one; otherwise a solid band of the given coverage (0 = no backwall).</param>
 		public Result Generate(NoiseVariant v, string biomeKey, bool vanillaBackwall, float coverage, int width, int height, int seed, float ox, float oy)
 		{
@@ -252,12 +255,11 @@ namespace BiomePreview
 			else
 				r.Notes.Add("No backwall band.");
 			backwall?.ConvertBandSizeToMaxSize();
-			string backwallNoise = v.BackwallNoise;
+			string backwallNoise = BackwallNoiseOverride ?? v.BackwallNoise;
 			if (backwall != null && backwallNoise == null)
-			{
-				backwallNoise = "noise/NaturalBackwalls";
-				r.BackwallNoise = backwallNoise + " (mod default)";
-			}
+				backwallNoise = "noise/NaturalBackwallsReef";
+			if (backwall != null)
+				r.BackwallNoise = backwallNoise + (BackwallNoiseOverride != null ? " (chosen)" : v.BackwallNoise == null ? " (mod default)" : "");
 
 			float[] baseMap = Noise(v.BiomeNoise, width, height, seed, ox, oy, 0, 0);
 			float[] overMap = v.Caves ? Noise(v.OverrideNoise, width, height, seed, ox, oy, 0, 0) : null;
@@ -331,7 +333,7 @@ namespace BiomePreview
 		{
 			string path = ResolveYaml(treeName);
 			if (!File.Exists(path) && treeName.StartsWith("noise/NaturalBackwalls"))
-				path = Path.Combine(Path.GetDirectoryName(typeof(Preview).Assembly.Location) ?? ".", "..", "..", "..", "..", "src", "NaturalBackwalls", "worldgen", "noise", "NaturalBackwalls.yaml");
+				path = Path.Combine(Path.GetDirectoryName(typeof(Preview).Assembly.Location) ?? ".", "..", "..", "..", "..", "src", "NaturalBackwalls", "worldgen", "noise", treeName.Substring("noise/".Length) + ".yaml");
 			if (!File.Exists(path))
 				throw new FileNotFoundException("Noise tree not found", path);
 			var tree = YamlIO.Parse<ProcGen.Noise.Tree>(File.ReadAllText(path), default(FileHandle), OnYamlError);

@@ -78,9 +78,7 @@ namespace NaturalBackwalls
 		}
 
 		public BiomeOptionsEntry(BiomeGroup group, Options options)
-			: base(group.Id, new OptionAttribute(group.Title,
-				"Backwall material behind the " + group.Title + " biome, chosen from the solids found there (\"None\" leaves it without backwalls), and the fraction of its cells that get one (0 to 1) when it is not the starting biome. The Aquatic Planet Pack uses 0.2 for its reef and kelp forest.",
-				"Biomes"))
+			: base(group.Id, new OptionAttribute(group.Title, "", "Biomes"))
 		{
 			this.group = group;
 			this.options = options;
@@ -109,7 +107,6 @@ namespace NaturalBackwalls
 				Content = choices,
 				EntryColor = PUITuning.Colors.ButtonBlueStyle,
 				TextStyle = PUITuning.Fonts.TextLightStyle,
-				ToolTip = "Backwall material",
 				OnOptionSelected = OnSelected,
 			}.SetMinWidthInCharacters(DropdownWidthInCharacters);
 			dropdown.AddOnRealize(go => comboBox = go);

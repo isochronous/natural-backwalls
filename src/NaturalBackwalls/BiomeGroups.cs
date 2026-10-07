@@ -21,7 +21,7 @@ namespace NaturalBackwalls
 		/// <summary>Solid elements found in these biomes' band tables; the dropdown choices.</summary>
 		public string[] Materials { get; }
 		public string DefaultMaterial { get; }
-		/// <summary>Default fraction of cells with a backwall when this is not the starting biome.</summary>
+		/// <summary>Default band size when this is not the starting biome: 0.4, or 0.15 for biomes whose zone defaults to the dense kelp forest pattern.</summary>
 		public float DefaultCoverage { get; }
 		/// <summary>True for biomes the game already gives backwalls (the Aquatic Planet Pack's); their vanilla data is kept while the settings stay at the defaults.</summary>
 		public bool Vanilla { get; }
@@ -29,8 +29,8 @@ namespace NaturalBackwalls
 		public BiomeGroup(string id, string title, string dlc, string[] biomeFiles, string[] materials, string defaultMaterial,
 			string[] extraBiomes = null, float defaultCoverage = 0.4f, bool vanilla = false)
 		{
-			DefaultCoverage = defaultCoverage;
 			Vanilla = vanilla;
+			DefaultCoverage = defaultCoverage;
 			Id = id;
 			Title = title;
 			Dlc = dlc;
@@ -66,10 +66,10 @@ namespace NaturalBackwalls
 				extraBiomes: new[] { "expansion1::biomes/Misc/DeadOasis" }),
 			new BiomeGroup("Caustic", "Caustic (jungle)", null,
 				new[] { "biomes/Jungle" },
-				new[] { "IgneousRock", "Phosphorite", "IronOre", "Algae" }, "IgneousRock"),
+				new[] { "IgneousRock", "Phosphorite", "IronOre", "Algae" }, "IgneousRock", defaultCoverage: 0.15f),
 			new BiomeGroup("Marsh", "Marsh", null,
 				new[] { "biomes/HotMarsh" },
-				new[] { "SedimentaryRock", "Clay", "SlimeMold", "GoldAmalgam", "Algae" }, "SedimentaryRock"),
+				new[] { "SedimentaryRock", "Clay", "SlimeMold", "GoldAmalgam", "Algae" }, "SedimentaryRock", defaultCoverage: 0.15f),
 			new BiomeGroup("Ocean", "Ocean (tide pool)", null,
 				new[] { "biomes/Ocean" },
 				new[] { "SedimentaryRock", "Sand", "Salt", "Granite", "BleachStone", "BrineIce" }, "SedimentaryRock"),
@@ -89,7 +89,7 @@ namespace NaturalBackwalls
 				extraBiomes: new[] { "expansion1::biomes/Misc/HardDust", "expansion1::biomes/Misc/SoftDust" }),
 			new BiomeGroup("Swamp", "Swamp", SO,
 				new[] { "expansion1::biomes/Swamp" },
-				new[] { "SedimentaryRock", "Mud", "ToxicMud", "ToxicSand", "Cobaltite", "Dirt", "Phosphorite", "Fertilizer" }, "SedimentaryRock"),
+				new[] { "SedimentaryRock", "Mud", "ToxicMud", "ToxicSand", "Cobaltite", "Dirt", "Phosphorite", "Fertilizer" }, "SedimentaryRock", defaultCoverage: 0.15f),
 			new BiomeGroup("Wasteland", "Wasteland", SO,
 				new[] { "expansion1::biomes/Wasteland" },
 				new[] { "IgneousRock", "Sulfur", "Cuprite", "SandStone", "Sand", "MaficRock", "Snow" }, "IgneousRock"),
@@ -113,16 +113,16 @@ namespace NaturalBackwalls
 				new[] { "Granite", "Ice", "Snow", "SolidCarbonDioxide", "OxyRock", "Phosphorite", "Cinnabar", "Dirt", "CrushedIce" }, "Granite"),
 			new BiomeGroup("SugarWoods", "Nectar (sugar woods)", Frosty,
 				new[] { "dlc2::biomes/SugarWoods" },
-				new[] { "Granite", "Ice", "Snow", "Phosphorite", "SolidMercury" }, "Granite"),
+				new[] { "Granite", "Ice", "Snow", "Phosphorite", "SolidMercury" }, "Granite", defaultCoverage: 0.15f),
 			new BiomeGroup("Garden", "Garden", Prehistoric,
 				new[] { "dlc4::biomes/Garden" },
-				new[] { "Shale", "NickelOre", "Dirt", "Peat", "Algae", "Fertilizer", "OxyRock" }, "Shale"),
+				new[] { "Shale", "NickelOre", "Dirt", "Peat", "Algae", "Fertilizer", "OxyRock" }, "Shale", defaultCoverage: 0.15f),
 			new BiomeGroup("Raptor", "Feather (raptor)", Prehistoric,
 				new[] { "dlc4::biomes/Raptor" },
 				new[] { "Granite", "IronOre", "BleachStone", "BrineIce", "IgneousRock", "Phosphorite" }, "Granite"),
 			new BiomeGroup("Wetlands", "Wetlands", Prehistoric,
 				new[] { "dlc4::biomes/Wetlands" },
-				new[] { "IgneousRock", "Obsidian", "ToxicSand", "Sand", "GoldAmalgam" }, "IgneousRock"),
+				new[] { "IgneousRock", "Obsidian", "ToxicSand", "Sand", "GoldAmalgam" }, "IgneousRock", defaultCoverage: 0.15f),
 			// The Aquatic Planet Pack's own biomes: defaults are the pack's values (Beach is fully
 			// walled in Salt, except its algae pockets in Dirt; Reef and Kelp Forest 0.2; Abyss 0.14).
 			new BiomeGroup("Beach", "Beach (Aquatic pack)", Aquatic,

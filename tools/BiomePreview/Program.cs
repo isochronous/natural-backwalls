@@ -68,7 +68,7 @@ namespace BiomePreview
 				Console.Error.WriteLine("(run without arguments for the GUI)");
 				Console.Error.WriteLine("usage: BiomePreview --subworld <scoped path, e.g. subworlds/marsh/HotMarsh or dlc5::subworlds/kelpforest/KelpForestBasic>\n"
 					+ "  [--biome <biome key, default: the subworld's heaviest>] [--coverage <0..1>, default: the biome's vanilla backwall band if any, else 0.4]\n"
-					+ "  [--size WxH] [--seed N] [--offset X,Y] [--norm WxH, world size the backwall noise is normalised over, default 256x384, 0x0 = window] [--out file.html]");
+					+ "  [--size WxH] [--seed N] [--offset X,Y] [--norm WxH, world size the backwall noise is normalised over, default 256x384, 0x0 = window] [--noise <tree, e.g. noise/NaturalBackwallsKelp>] [--out file.html]");
 				return 2;
 			}
 			var preview = new Preview(streamingAssets);
@@ -94,6 +94,8 @@ namespace BiomePreview
 				string[] nwh = norm.ToLowerInvariant().Split('x');
 				preview.NormaliseWidth = int.Parse(nwh[0]); preview.NormaliseHeight = int.Parse(nwh[1]);
 			}
+			if (a.TryGetValue("noise", out string noise))
+				preview.BackwallNoiseOverride = noise;
 			Result r = preview.Generate(subworld, biome, vanilla, coverage, width, height, seed, ox, oy);
 			string outPath = a.TryGetValue("out", out string o) ? o : "preview.html";
 			File.WriteAllText(outPath, Html.Render(r), new UTF8Encoding(false));

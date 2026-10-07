@@ -6,13 +6,15 @@ The Aquatic pack has no special backwall algorithm. Its subworlds name a backwal
 [h2]Options[/h2]
 [list]
 [*]One row per biome family (Sandstone, Forest, Tundra, Caustic, Marsh, Ocean, Oily, Rust, Magma, Barren, and the Spaced Out, Frosty Planet, and Prehistoric Planet biomes when active): a material dropdown listing the solids found in that biome plus None, and a coverage box. Want ice walls behind your tundra or lead behind the oil biome? Pick them.
-[*]Coverage is the fraction of cells with a backwall; 0.4 by default, since rock biomes hide most backwalls behind solid tiles. A separate starting-biome coverage (1 by default, like the pack's beach) applies to whatever biome you start in.
+[*]A Patterns section picks, per subworld zone, the noise the patches follow: the pack's reef, kelp forest, abyss and beach trees (shipped with the mod, no DLC needed) or the base game's Strange tree. Lush biomes default to the dense kelp forest pattern, hot rocky ones to the abyss, the rest to the reef.
+[*]Coverage is the band size; 0.4 by default with the reef and abyss patterns and 0.15 with the kelp forest one, which come to about the same density, since rock biomes hide most backwalls behind solid tiles. A separate starting-biome coverage (1 by default, like the pack's beach) applies to whatever biome you start in.
 [/list]
 
 [h2]Good to know[/h2]
 [list]
 [*]New worlds only. Backwalls are placed by world generation, so existing colonies are unchanged.
 [*]Carved caves, lakes and geodes get backwalls as well. The game's own pass skips them, which is why the pack's logic leaves most rock-biome caves bare; turn it off in the options if you prefer that.
+[*]In Spaced Out, only the starting asteroid gets backwalls unless you turn on the option for the other planetoids, matching the pack.
 [*]Surface and space subworlds are never given backwalls; a backwalled cell is no longer open to space.
 [*]Backwalls can be dug like the pack's, so they yield their material. The defaults are each biome's filler rock.
 [*]The Aquatic pack's own biomes are listed too, with the pack's values as defaults; leave them alone and their worldgen is untouched, or give them your own material and coverage.

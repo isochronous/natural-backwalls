@@ -16,21 +16,23 @@ namespace NaturalBackwalls
 	[HarmonyPatch(typeof(SettingsCache), nameof(SettingsCache.CloneInToNewWorld))]
 	public static class CloneInToNewWorld_Patch
 	{
-		/// <summary>The mod's copy of the Aquatic pack's reef noise, so it works without that DLC.</summary>
-		private const string ModNoise = "noise/NaturalBackwalls";
-		/// <summary>Base-game tree the Aquatic pack itself uses for two of its subworlds.</summary>
+		/// <summary>Base-game tree the Aquatic pack itself uses for two of its subworlds; the fallback when a shipped tree is missing.</summary>
 		private const string FallbackNoise = "noise/SandstoneStrange";
 		private const string Suffix = "_backwall";
 
 		private static readonly MethodInfo SetBackwallNoise =
 			typeof(SubWorld).GetProperty(nameof(SubWorld.backwallNoise)).GetSetMethod(true);
 
-		private static string noiseName;
+		private static readonly Dictionary<string, string> resolvedTrees = new Dictionary<string, string>();
 
 		/// <summary>Biome keys whose backwall table this mod built for the world being generated (not vanilla ones).</summary>
 		public static readonly HashSet<string> ModdedBiomes = new HashSet<string>();
 		/// <summary>Whether feature rooms get backwalls too; read from the options per world.</summary>
 		public static bool FeatureBackwalls = true;
+		/// <summary>Whether worlds other than the starting one get backwalls; read from the options per world.</summary>
+		public static bool OtherPlanetoids = false;
+		/// <summary>Subworlds this mod enabled, per world, so the starting-world check can undo them.</summary>
+		public static readonly Dictionary<ProcGen.World, List<SubWorld>> EnabledSubworlds = new Dictionary<ProcGen.World, List<SubWorld>>();
 
 		public static void Postfix(MutatedWorldData worldData)
 		{
@@ -39,8 +41,11 @@ namespace NaturalBackwalls
 			Options options = Options.Load();
 			ModdedBiomes.Clear();
 			FeatureBackwalls = options.FeatureBackwalls;
+			OtherPlanetoids = options.OtherPlanetoids;
+			List<SubWorld> enabledHere = new List<SubWorld>();
+			if (worldData.world != null)
+				EnabledSubworlds[worldData.world] = enabledHere;
 			Dictionary<string, ElementBandConfiguration> bands = worldData.biomes.BiomeBackgroundElementBandConfigurations;
-			string noise = NoiseName();
 			HashSet<string> startBiomes = StartBiomes(worldData);
 			int enabled = 0, skipped = 0;
 			foreach (KeyValuePair<string, SubWorld> pair in worldData.subworlds)
@@ -69,16 +74,53 @@ namespace NaturalBackwalls
 					if (solid) ModdedBiomes.Add(biome.name);
 					anySolid |= solid;
 				}
+				PatternGroup zone = Patterns.GroupFor(subworld.zoneType);
+				Pattern pattern = zone != null ? options.PatternFor(zone) : null;
 				if (hasNoise)
+				{
+					// The game's own backwalled subworld: only a pattern chosen away from "as the game made it" changes its tree.
+					if (pattern?.Tree != null)
+						SetBackwallNoise.Invoke(subworld, new object[] { TreeName(pattern) });
 					continue;
+				}
 				if (anySolid)
 				{
-					SetBackwallNoise.Invoke(subworld, new object[] { noise });
+					SetBackwallNoise.Invoke(subworld, new object[] { TreeName(pattern ?? Patterns.All[0]) });
+					enabledHere.Add(subworld);
 					enabled++;
 				}
 			}
 			Debug.Log("[NaturalBackwalls] Backwalls enabled in " + enabled + " subworlds (" + skipped + " surface/space subworlds left open), "
-				+ startBiomes.Count + " starting biome(s) at coverage " + options.StartCoverage + ", noise " + noise);
+				+ startBiomes.Count + " starting biome(s) at coverage " + options.StartCoverage);
+		}
+
+		/// <summary>Undoes the subworld enabling for a world that is not the starting one, when the option says so.</summary>
+		public static void ClearBackwallNoise(ProcGen.World world)
+		{
+			if (world == null || !EnabledSubworlds.TryGetValue(world, out List<SubWorld> subworlds))
+				return;
+			foreach (SubWorld subworld in subworlds)
+				SetBackwallNoise.Invoke(subworld, new object[] { null });
+			EnabledSubworlds.Remove(world);
+			Debug.Log("[NaturalBackwalls] Not the starting world: backwalls left off in " + subworlds.Count + " subworlds (option \"Backwalls on other planetoids\" is off)");
+		}
+
+		/// <summary>The pattern's tree if its file can be found, else the base-game fallback.</summary>
+		private static string TreeName(Pattern pattern)
+		{
+			string tree = pattern.Tree ?? FallbackNoise;
+			if (resolvedTrees.TryGetValue(tree, out string resolved))
+				return resolved;
+			string path = SettingsCache.RewriteWorldgenPathYaml(tree);
+			if (!FileSystem.FileExists(path))
+			{
+				Debug.LogWarning("[NaturalBackwalls] " + path + " not found (is the mod's worldgen folder missing?); using " + FallbackNoise);
+				resolved = FallbackNoise;
+			}
+			else
+				resolved = tree;
+			resolvedTrees[tree] = resolved;
+			return resolved;
 		}
 
 		/// <summary>The biomes of the world's starting subworld; they get the starting-biome coverage.</summary>
@@ -161,19 +203,5 @@ namespace NaturalBackwalls
 			return false;
 		}
 
-		private static string NoiseName()
-		{
-			if (noiseName != null)
-				return noiseName;
-			string path = SettingsCache.RewriteWorldgenPathYaml(ModNoise);
-			if (FileSystem.FileExists(path))
-				noiseName = ModNoise;
-			else
-			{
-				Debug.LogWarning("[NaturalBackwalls] " + path + " not found (is the mod's worldgen folder missing?); using " + FallbackNoise);
-				noiseName = FallbackNoise;
-			}
-			return noiseName;
-		}
 	}
 }
