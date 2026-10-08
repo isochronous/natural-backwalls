@@ -9,7 +9,9 @@ https://github.com/isochronous/natural-backwalls
 
 Requirements
 ------------
-- Windows x64. Nothing to install: the .NET runtime is bundled.
+- Windows x64. Two downloads exist: BiomePreview-<version>.zip has the .NET runtime bundled and needs
+  nothing installed; BiomePreview-<version>-net8.zip is much smaller and needs the .NET 8 Desktop
+  Runtime (x64) from https://dotnet.microsoft.com/download/dotnet/8.0 installed first.
 - Oxygen Not Included installed. The tool loads the game's own assemblies and worldgen files from your
   install; nothing of the game is included in this zip. It finds the game through Steam by itself. If it
   cannot, it asks for the game folder once (the one containing OxygenNotIncluded.exe) and remembers it.

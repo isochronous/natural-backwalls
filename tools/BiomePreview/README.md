@@ -30,10 +30,12 @@ tool's folder is listed on the next start; the "Add noise tree yaml..." button c
 ## Distributing
 
 ```
-pwsh tools/BiomePreview/publish.ps1 [-Version 1.2.3]
+pwsh tools/BiomePreview/publish.ps1 [-Version 1.2.3] [-Mode SelfContained|FrameworkDependent|Both]
 ```
 
-writes `tools/BiomePreview/dist/BiomePreview-<version>.zip`: a self-contained single-file Windows x64
-build (no .NET install needed), the noise trees, and `README-dist.txt` as `README.txt`. The game's
+writes two zips to `tools/BiomePreview/dist/` by default: `BiomePreview-<version>.zip`, a
+self-contained single-file Windows x64 build (about 65 MB, nothing to install), and
+`BiomePreview-<version>-net8.zip`, the same as a framework-dependent build (about 1 MB, needs the .NET 8
+Desktop Runtime x64). Both hold the noise trees and `README-dist.txt` as `README.txt`. The game's
 assemblies are never included; the published exe finds the user's install by itself. `publish/` and
 `dist/` are ignored by git.
