@@ -14,7 +14,9 @@ The Aquatic pack has no special backwall algorithm. Its subworlds name a backwal
 [list]
 [*]New worlds only. Backwalls are placed by world generation, so existing colonies are unchanged.
 [*]Carved caves, lakes and geodes get backwalls as well. The game's own pass skips them, which is why the pack's logic leaves most rock-biome caves bare; turn it off in the options if you prefer that.
+[*]An options button exports your settings as a worldgen YAML overlay, for browser renderers such as onimaxxing.com/worldgen.
 [*]In Spaced Out, only the starting asteroid gets backwalls unless you turn on the option for the other planetoids, matching the pack.
+[*]Works alongside other worldgen mods: their subworlds and biomes are handled like the game's, unknown biomes get their own most common solid (or nothing, your choice), and anything that already has backwalls keeps them.
 [*]Surface and space subworlds are never given backwalls; a backwalled cell is no longer open to space.
 [*]Backwalls can be dug like the pack's, so they yield their material. The defaults are each biome's filler rock.
 [*]The Aquatic pack's own biomes are listed too, with the pack's values as defaults; leave them alone and their worldgen is untouched, or give them your own material and coverage.

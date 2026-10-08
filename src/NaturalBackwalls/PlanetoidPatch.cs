@@ -15,9 +15,16 @@ namespace NaturalBackwalls
 	{
 		public static void Prefix(WorldGen __instance)
 		{
-			if (__instance.isStartingWorld || CloneInToNewWorld_Patch.OtherPlanetoids)
-				return;
-			CloneInToNewWorld_Patch.ClearBackwallNoise(__instance.Settings?.world);
+			try
+			{
+				if (__instance.isStartingWorld || CloneInToNewWorld_Patch.OtherPlanetoids)
+					return;
+				CloneInToNewWorld_Patch.ClearBackwallNoise(__instance.Settings?.world);
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogWarning("[NaturalBackwalls] Starting-world check skipped: " + e.Message);
+			}
 		}
 	}
 }

@@ -71,6 +71,50 @@ namespace BiomePreview
 		private readonly float caveMax, caveSliver;
 		private Dictionary<string, List<NoiseVariant>> catalog;
 		private List<BiomeEntry> entries;
+		private readonly List<string> overlayRoots = new List<string>();
+
+		/// <summary>
+		/// Mod-style folders layered over the game's StreamingAssets, first match wins: a file at
+		/// "<root>/worldgen/noise/x.yaml" or "<root>/dlc/dlc5/worldgen/subworlds/..." replaces the game's,
+		/// exactly as the game layers a mod's worldgen folder. Lets a custom noise tree, subworld or
+		/// biome file be previewed without touching the game install.
+		/// </summary>
+		public IReadOnlyList<string> OverlayRoots => overlayRoots;
+
+		public void SetOverlays(IEnumerable<string> roots)
+		{
+			overlayRoots.Clear();
+			foreach (string r in roots)
+				if (!string.IsNullOrWhiteSpace(r) && Directory.Exists(r))
+					overlayRoots.Add(Path.GetFullPath(r));
+			catalog = null;
+			entries = null;
+		}
+
+		/// <summary>Noise trees found in the overlays, as scoped names ("noise/MyTree", "dlc5::noise/x").</summary>
+		public List<string> ListOverlayNoise()
+		{
+			var list = new List<string>();
+			foreach (string root in overlayRoots)
+			{
+				void Scan(string dir, string scope)
+				{
+					if (!Directory.Exists(dir)) return;
+					foreach (string f in Directory.GetFiles(dir, "*.yaml", SearchOption.AllDirectories))
+					{
+						string rel = Path.GetRelativePath(Path.GetDirectoryName(dir), f).Replace(Path.DirectorySeparatorChar, '/');
+						list.Add(scope + rel.Substring(0, rel.Length - 5));
+					}
+				}
+				Scan(Path.Combine(root, "worldgen", "noise"), "");
+				string dlc = Path.Combine(root, "dlc");
+				if (Directory.Exists(dlc))
+					foreach (string d in Directory.GetDirectories(dlc))
+						Scan(Path.Combine(d, "worldgen", "noise"), Path.GetFileName(d) + "::");
+			}
+			list.Sort(StringComparer.OrdinalIgnoreCase);
+			return list;
+		}
 
 		public Preview(string streamingAssets)
 		{
@@ -158,7 +202,7 @@ namespace BiomePreview
 		/// <summary>Every subworld with a biome noise tree, as scoped names ("dlc5::subworlds/reef/ReefBasic").</summary>
 		public List<string> ListSubworlds()
 		{
-			var list = new List<string>();
+			var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			void Scan(string root, string scope)
 			{
 				string dir = Path.Combine(root, "worldgen", "subworlds");
@@ -167,14 +211,21 @@ namespace BiomePreview
 				{
 					if (!File.ReadAllText(f).Contains("biomeNoise:")) continue;
 					string rel = Path.GetRelativePath(Path.Combine(root, "worldgen"), f).Replace(Path.DirectorySeparatorChar, '/');
-					list.Add(scope + rel.Substring(0, rel.Length - 5));
+					set.Add(scope + rel.Substring(0, rel.Length - 5));
 				}
 			}
-			Scan(streamingAssets, "");
-			string dlc = Path.Combine(streamingAssets, "dlc");
-			if (Directory.Exists(dlc))
-				foreach (string d in Directory.GetDirectories(dlc))
-					Scan(d, Path.GetFileName(d) + "::");
+			void ScanRoot(string root)
+			{
+				Scan(root, "");
+				string dlc = Path.Combine(root, "dlc");
+				if (Directory.Exists(dlc))
+					foreach (string d in Directory.GetDirectories(dlc))
+						Scan(d, Path.GetFileName(d) + "::");
+			}
+			ScanRoot(streamingAssets);
+			foreach (string root in overlayRoots)
+				ScanRoot(root);
+			var list = new List<string>(set);
 			list.Sort(StringComparer.OrdinalIgnoreCase);
 			return list;
 		}
@@ -216,7 +267,7 @@ namespace BiomePreview
 		/// </summary>
 		public int NormaliseWidth = 256, NormaliseHeight = 384;
 
-		/// <summary>A noise tree to use for the backwall instead of the subworld's own or the mod default, e.g. "noise/NaturalBackwallsKelp".</summary>
+		/// <summary>A noise tree to use for the backwall instead of the subworld's own or the mod default: a scoped name such as "noise/NaturalBackwallsKelp", or the path of a tree yaml file.</summary>
 		public string BackwallNoiseOverride;
 
 		/// <param name="vanillaBackwall">Use the biome's own "_backwall" table when it has one; otherwise a solid band of the given coverage (0 = no backwall).</param>
@@ -331,7 +382,8 @@ namespace BiomePreview
 
 		private float[] NoiseArea(string treeName, int width, int height, int seed, float ox, float oy)
 		{
-			string path = ResolveYaml(treeName);
+			// A tree can be named by its scoped worldgen name or given as a plain path to a yaml file.
+			string path = File.Exists(treeName) ? treeName : ResolveYaml(treeName);
 			if (!File.Exists(path) && treeName.StartsWith("noise/NaturalBackwalls"))
 				path = Path.Combine(Path.GetDirectoryName(typeof(Preview).Assembly.Location) ?? ".", "..", "..", "..", "..", "src", "NaturalBackwalls", "worldgen", "noise", treeName.Substring("noise/".Length) + ".yaml");
 			if (!File.Exists(path))
@@ -376,15 +428,24 @@ namespace BiomePreview
 			Console.Error.WriteLine("yaml: " + error.message);
 		}
 
-		/// <summary>SettingsCache.RewriteWorldgenPathYaml: "dlc5::noise/x" -> StreamingAssets/dlc/dlc5/worldgen/noise/x.yaml.</summary>
+		/// <summary>
+		/// SettingsCache.RewriteWorldgenPathYaml: "dlc5::noise/x" -> dlc/dlc5/worldgen/noise/x.yaml, looked up in
+		/// the overlay folders first and the game's StreamingAssets last.
+		/// </summary>
 		private string ResolveYaml(string scoped)
 		{
 			string scope = "", rest = scoped;
 			int i = scoped.IndexOf("::", StringComparison.Ordinal);
 			if (i >= 0) { scope = scoped.Substring(0, i); rest = scoped.Substring(i + 2); }
-			string root = scope == "" ? streamingAssets : Path.Combine(streamingAssets, "dlc", scope);
-			string path = Path.Combine(root, "worldgen", rest.Replace('/', Path.DirectorySeparatorChar));
-			return path.EndsWith(".yaml") ? path : path + ".yaml";
+			string relative = Path.Combine(scope == "" ? "" : Path.Combine("dlc", scope), "worldgen", rest.Replace('/', Path.DirectorySeparatorChar));
+			if (!relative.EndsWith(".yaml")) relative += ".yaml";
+			foreach (string root in overlayRoots)
+			{
+				string candidate = Path.Combine(root, relative);
+				if (File.Exists(candidate))
+					return candidate;
+			}
+			return Path.Combine(streamingAssets, relative);
 		}
 
 		private HashSet<string> LoadSolids()

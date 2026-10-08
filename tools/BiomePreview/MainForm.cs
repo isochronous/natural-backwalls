@@ -23,6 +23,9 @@ namespace BiomePreview
 		private readonly Label variantLabel = new Label { Text = "Noise setup (this biome has several)", AutoSize = true, Padding = new Padding(0, 6, 0, 0) };
 		private readonly CheckBox vanillaBackwall = new CheckBox { Text = "Use the biome's vanilla backwall band", AutoSize = true };
 		private readonly ComboBox patternBox = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
+		private readonly Button addTreeButton = new Button { Text = "Add noise tree yaml...", Width = 160 };
+		private readonly List<string> addedTrees = new List<string>();
+		private readonly List<(string title, string tree)> patterns = new List<(string title, string tree)>();
 		private static readonly (string title, string tree)[] PatternList =
 		{
 			("Subworld's own / mod default (Reef)", null),
@@ -74,9 +77,9 @@ namespace BiomePreview
 			left.Controls.Add(variantBox);
 			left.Controls.Add(vanillaBackwall);
 			AddRow(left, "Backwall coverage (band size, 0 = none)", coverageBox);
-			foreach (var p in PatternList) patternBox.Items.Add(p.title);
-			patternBox.SelectedIndex = 0;
+			LoadPatterns();
 			AddRow(left, "Backwall noise pattern", patternBox);
+			left.Controls.Add(addTreeButton);
 			var seedRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
 			seedRow.Controls.Add(seedBox); seedRow.Controls.Add(randomButton);
 			AddRow(left, "Seed", seedRow);
@@ -104,6 +107,7 @@ namespace BiomePreview
 			vanillaBackwall.CheckedChanged += (s, e) => { coverageBox.Enabled = !(vanillaBackwall.Enabled && vanillaBackwall.Checked); MaybeGenerate(); };
 			coverageBox.ValueChanged += (s, e) => MaybeGenerate();
 			patternBox.SelectedIndexChanged += (s, e) => MaybeGenerate();
+			addTreeButton.Click += (s, e) => AddTree();
 			seedBox.ValueChanged += (s, e) => MaybeGenerate();
 			widthBox.ValueChanged += (s, e) => MaybeGenerate();
 			heightBox.ValueChanged += (s, e) => MaybeGenerate();
@@ -118,16 +122,60 @@ namespace BiomePreview
 
 			loading = true;
 			biomeBox.DisplayMember = nameof(BiomeEntry.Label);
-			int marsh = 0;
-			foreach (BiomeEntry entry in preview.Entries())
-			{
-				if (entry.Key == "biomes/HotMarsh/Basic") marsh = biomeBox.Items.Count;
-				biomeBox.Items.Add(entry);
-			}
-			biomeBox.SelectedIndex = marsh;
-			LoadVariants();
+			LoadBiomes();
 			loading = false;
 			Shown += (s, e) => Generate();
+		}
+
+		/// <summary>Fills the biome list from the catalog (game files plus overlay), keeping the current pick when it still exists.</summary>
+		private void LoadBiomes()
+		{
+			bool wasLoading = loading; loading = true;
+			string previous = (biomeBox.SelectedItem as BiomeEntry)?.Key ?? "biomes/HotMarsh/Basic";
+			biomeBox.Items.Clear();
+			int pick = 0;
+			foreach (BiomeEntry entry in preview.Entries())
+			{
+				if (entry.Key == previous) pick = biomeBox.Items.Count;
+				biomeBox.Items.Add(entry);
+			}
+			if (biomeBox.Items.Count > 0)
+				biomeBox.SelectedIndex = pick;
+			LoadVariants();
+			loading = wasLoading;
+		}
+
+		/// <summary>The fixed pattern list plus every noise tree file added this session.</summary>
+		private void LoadPatterns(string select = null)
+		{
+			bool wasLoading = loading; loading = true;
+			string previous = select ?? (patternBox.SelectedIndex >= 0 && patternBox.SelectedIndex < patterns.Count ? patterns[patternBox.SelectedIndex].tree : null);
+			patterns.Clear();
+			patterns.AddRange(PatternList);
+			foreach (string file in addedTrees)
+				patterns.Add(("File: " + System.IO.Path.GetFileName(file), file));
+			patternBox.Items.Clear();
+			foreach (var p in patterns) patternBox.Items.Add(p.title);
+			int idx = patterns.FindIndex(p => p.tree == previous);
+			patternBox.SelectedIndex = idx >= 0 ? idx : 0;
+			loading = wasLoading;
+		}
+
+		/// <summary>Adds a noise tree yaml (the game's worldgen/noise format, e.g. from a noise-generation tool) to the pattern list and selects it.</summary>
+		private void AddTree()
+		{
+			using var dialog = new OpenFileDialog { Title = "Noise tree yaml (same format as the game's worldgen/noise files)", Filter = "Noise tree yaml|*.yaml;*.yml|All files|*.*", Multiselect = true };
+			if (dialog.ShowDialog(this) != DialogResult.OK)
+				return;
+			string last = null;
+			foreach (string file in dialog.FileNames)
+			{
+				if (!addedTrees.Contains(file))
+					addedTrees.Add(file);
+				last = file;
+			}
+			LoadPatterns(last);
+			MaybeGenerate();
 		}
 
 		private static void AddRow(FlowLayoutPanel panel, string label, Control control)
@@ -167,7 +215,7 @@ namespace BiomePreview
 			Cursor = Cursors.WaitCursor;
 			try
 			{
-				preview.BackwallNoiseOverride = PatternList[Math.Max(0, patternBox.SelectedIndex)].tree;
+				preview.BackwallNoiseOverride = patterns[Math.Max(0, Math.Min(patterns.Count - 1, patternBox.SelectedIndex))].tree;
 				preview.NormaliseWidth = (int)normWidthBox.Value;
 				preview.NormaliseHeight = (int)normHeightBox.Value;
 				last = preview.Generate(variant, entry.Key, vanillaBackwall.Enabled && vanillaBackwall.Checked, (float)coverageBox.Value,

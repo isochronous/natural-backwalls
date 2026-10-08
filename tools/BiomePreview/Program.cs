@@ -68,10 +68,13 @@ namespace BiomePreview
 				Console.Error.WriteLine("(run without arguments for the GUI)");
 				Console.Error.WriteLine("usage: BiomePreview --subworld <scoped path, e.g. subworlds/marsh/HotMarsh or dlc5::subworlds/kelpforest/KelpForestBasic>\n"
 					+ "  [--biome <biome key, default: the subworld's heaviest>] [--coverage <0..1>, default: the biome's vanilla backwall band if any, else 0.4]\n"
-					+ "  [--size WxH] [--seed N] [--offset X,Y] [--norm WxH, world size the backwall noise is normalised over, default 256x384, 0x0 = window] [--noise <tree, e.g. noise/NaturalBackwallsKelp>] [--out file.html]");
+					+ "  [--size WxH] [--seed N] [--offset X,Y] [--norm WxH, world size the backwall noise is normalised over, default 256x384, 0x0 = window] [--noise <tree, e.g. noise/NaturalBackwallsKelp>]\n"
+					+ "  [--overlay <mod folder with worldgen/..., layered over the game's files; several separated by ';'>] [--out file.html]");
 				return 2;
 			}
 			var preview = new Preview(streamingAssets);
+			if (a.TryGetValue("overlay", out string overlay))
+				preview.SetOverlays(overlay.Split(';'));
 			string subworld = a["subworld"];
 			string biome = a.TryGetValue("biome", out string b) ? b : null;
 			bool vanilla = !a.ContainsKey("coverage");

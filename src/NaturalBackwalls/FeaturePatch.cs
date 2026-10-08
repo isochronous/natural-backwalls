@@ -19,6 +19,18 @@ namespace NaturalBackwalls
 
 		public static void Postfix(TerrainCell __instance, WorldGen worldGen, Chunk world, TerrainCell.ISimDataSetter simDataSetter, float temperatureMin, float temperatureRange)
 		{
+			try
+			{
+				Apply(__instance, worldGen, world, simDataSetter, temperatureMin, temperatureRange);
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogWarning("[NaturalBackwalls] Feature-room backwalls skipped for one cell: " + e.Message);
+			}
+		}
+
+		private static void Apply(TerrainCell __instance, WorldGen worldGen, Chunk world, TerrainCell.ISimDataSetter simDataSetter, float temperatureMin, float temperatureRange)
+		{
 			if (!__instance.spawnBackwall || !CloneInToNewWorld_Patch.FeatureBackwalls)
 				return;
 			string biome = __instance.node?.GetBiome();

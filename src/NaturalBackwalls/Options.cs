@@ -23,6 +23,18 @@ namespace NaturalBackwalls
 		[JsonProperty]
 		public bool OtherPlanetoids { get; set; } = false;
 
+		[Option("Backwalls in biomes from other mods", "Biomes this mod does not know (added by worldgen mods) get a backwall of their own most common solid at the coverage below, with the pattern of their zone. Off leaves them bare.", "General")]
+		[JsonProperty]
+		public bool OtherModBiomes { get; set; } = true;
+
+		[Option("Coverage in biomes from other mods", "Band size used for biomes this mod does not know.", "General", Format = "F2")]
+		[Limit(0.0, 1.0)]
+		[JsonProperty]
+		public float OtherModCoverage { get; set; } = 0.4f;
+
+		[Option("Export worldgen overlay", "Writes the current settings as a mod-style folder of worldgen YAML (NaturalBackwalls-overlay next to your saves) for external renderers such as onimaxxing.com/worldgen or the BiomePreview tool. Feature caves and the starting-biome coverage are not representable there.", "General")]
+		public System.Action<object> ExportOverlayButton => _ => ExportOverlay.Run();
+
 		[Option("Starting biome coverage", "Coverage in whatever biome the colony starts in, replacing that biome's own value. The Aquatic Planet Pack fully walls its beach, hence 1.", "Starting biome", Format = "F2")]
 		[Limit(0.0, 1.0)]
 		[JsonProperty]
