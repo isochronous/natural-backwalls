@@ -60,7 +60,8 @@ dotnet build natural-backwalls/src/NaturalBackwalls -c Release
 `tools/BiomePreview` is a small .NET 8 Windows tool (a window when started without arguments, a command line otherwise) that runs the game's own noise trees and band tables (from `Assembly-CSharp-firstpass` and `LibNoiseDotNet`, loaded straight from the game folder) for one biome, and writes an HTML page with the foreground, the backwalls, an outline mode that shows backwalls through solid tiles, and the numbers: open cells, backwalls placed, backwalls visible. It skips everything above the biome level (overworld layout, POIs, borders, rivers, sim settle), so it is a rough preview of shape and density, in about a second.
 
 ```
-dotnet build tools/BiomePreview -c Release
+dotnet build tools/BiomePreview -c Release                           # development build: finds the game through gamelibs.txt
+pwsh tools/BiomePreview/publish.ps1                                   # self-contained zip for others, see tools/BiomePreview/README.md
 tools/BiomePreview/bin/Release/BiomePreview.exe                       # the window: pick subworld, biome, material, coverage, seed; toggle the foreground and outlines
 tools/BiomePreview/bin/Release/BiomePreview.exe --subworld subworlds/marsh/HotMarsh --coverage 0.4 --seed 1234 --out marsh.html
 tools/BiomePreview/bin/Release/BiomePreview.exe --subworld dlc5::subworlds/kelpforest/KelpForestBasic --out kelp.html     # vanilla backwall band

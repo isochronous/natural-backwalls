@@ -24,7 +24,7 @@ namespace BiomePreview
 		private readonly CheckBox vanillaBackwall = new CheckBox { Text = "Use the biome's vanilla backwall band", AutoSize = true };
 		private readonly ComboBox patternBox = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
 		private readonly Button addTreeButton = new Button { Text = "Add noise tree yaml...", Width = 160 };
-		private readonly List<string> addedTrees = new List<string>();
+		private readonly ToolTip tips = new ToolTip();
 		private readonly List<(string title, string tree)> patterns = new List<(string title, string tree)>();
 		private static readonly (string title, string tree)[] PatternList =
 		{
@@ -145,15 +145,19 @@ namespace BiomePreview
 			loading = wasLoading;
 		}
 
-		/// <summary>The fixed pattern list plus every noise tree file added this session.</summary>
+		/// <summary>
+		/// The named patterns first, then every other noise tree found: the game's own (base game and any
+		/// DLC installed), the tool's noise folder, and the overlays.
+		/// </summary>
 		private void LoadPatterns(string select = null)
 		{
 			bool wasLoading = loading; loading = true;
 			string previous = select ?? (patternBox.SelectedIndex >= 0 && patternBox.SelectedIndex < patterns.Count ? patterns[patternBox.SelectedIndex].tree : null);
 			patterns.Clear();
 			patterns.AddRange(PatternList);
-			foreach (string file in addedTrees)
-				patterns.Add(("File: " + System.IO.Path.GetFileName(file), file));
+			foreach (string tree in preview.ListAllNoise())
+				if (patterns.FindIndex(p => string.Equals(p.tree, tree, StringComparison.OrdinalIgnoreCase)) < 0)
+					patterns.Add((tree, tree));
 			patternBox.Items.Clear();
 			foreach (var p in patterns) patternBox.Items.Add(p.title);
 			int idx = patterns.FindIndex(p => p.tree == previous);
@@ -161,18 +165,30 @@ namespace BiomePreview
 			loading = wasLoading;
 		}
 
-		/// <summary>Adds a noise tree yaml (the game's worldgen/noise format, e.g. from a noise-generation tool) to the pattern list and selects it.</summary>
+		/// <summary>
+		/// Copies noise tree yaml files (the game's worldgen/noise format, e.g. from a noise-generation
+		/// tool) into the tool's noise folder, where they are listed from then on, and selects the last.
+		/// Dropping files into that folder by hand does the same.
+		/// </summary>
 		private void AddTree()
 		{
 			using var dialog = new OpenFileDialog { Title = "Noise tree yaml (same format as the game's worldgen/noise files)", Filter = "Noise tree yaml|*.yaml;*.yml|All files|*.*", Multiselect = true };
 			if (dialog.ShowDialog(this) != DialogResult.OK)
 				return;
 			string last = null;
-			foreach (string file in dialog.FileNames)
+			try
 			{
-				if (!addedTrees.Contains(file))
-					addedTrees.Add(file);
-				last = file;
+				System.IO.Directory.CreateDirectory(Preview.ToolNoiseFolder);
+				foreach (string file in dialog.FileNames)
+				{
+					string name = System.IO.Path.GetFileNameWithoutExtension(file);
+					System.IO.File.Copy(file, System.IO.Path.Combine(Preview.ToolNoiseFolder, name + ".yaml"), true);
+					last = "noise/" + name;
+				}
+			}
+			catch (Exception e)
+			{
+				MessageBox.Show(this, e.Message, "Could not copy the file into " + Preview.ToolNoiseFolder, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 			LoadPatterns(last);
 			MaybeGenerate();

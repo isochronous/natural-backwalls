@@ -30,8 +30,13 @@
     </Reference>
   </ItemGroup>
 
-  <!-- Tell the exe where the game's assemblies are, so it can resolve them at runtime. -->
-  <Target Name="WriteGameLibsPath" AfterTargets="Build">
+  <!-- The mod's noise trees travel with the tool (worldgen/noise next to the exe); any yaml dropped there is listed too. -->
+  <ItemGroup>
+    <None Include="..\..\src\NaturalBackwalls\worldgen\noise\*.yaml" Link="worldgen\noise\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Development builds record the game folder next to the exe; a published copy finds the game by itself (GameLocator). -->
+  <Target Name="WriteGameLibsPath" AfterTargets="Build" Condition="'$(PublishDir)' == ''">
     <WriteLinesToFile File="$(TargetDir)gamelibs.txt" Lines="$(GameLibsFolder)" Overwrite="true" />
   </Target>
 

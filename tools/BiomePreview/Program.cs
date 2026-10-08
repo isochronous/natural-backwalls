@@ -19,10 +19,13 @@ namespace BiomePreview
 		[STAThread]
 		public static int Main(string[] args)
 		{
-			// Resolve the game's assemblies from the folder the build recorded, before any type from them is touched.
-			string libs = File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gamelibs.txt"))
-				? File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gamelibs.txt")).Trim()
-				: Environment.GetEnvironmentVariable("ONI_GAME_FOLDER") + @"\OxygenNotIncluded_Data\Managed";
+			// Find the game's assemblies before any type from them is touched (see GameLocator for the search order).
+			string libs = GameLocator.FindManaged(allowPicker: args.Length == 0);
+			if (libs == null)
+			{
+				Console.Error.WriteLine("Oxygen Not Included was not found. Set ONI_GAME_FOLDER to the game folder, or start the tool without arguments and pick it.");
+				return 2;
+			}
 			AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
 			{
 				string name = new AssemblyName(e.Name).Name;

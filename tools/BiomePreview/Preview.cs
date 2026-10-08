@@ -91,29 +91,59 @@ namespace BiomePreview
 			entries = null;
 		}
 
-		/// <summary>Noise trees found in the overlays, as scoped names ("noise/MyTree", "dlc5::noise/x").</summary>
-		public List<string> ListOverlayNoise()
+		/// <summary>
+		/// The tool's own noise folder, next to the exe: the trees the mod ships (copied there by the
+		/// build) plus any yaml dropped in by hand. Consulted after the game's files, so a tree the game
+		/// already has keeps the game's version.
+		/// </summary>
+		public static string ToolNoiseFolder => Path.Combine(AppContext.BaseDirectory, "worldgen", "noise");
+
+		/// <summary>
+		/// Every noise tree available, as scoped names ("noise/MyTree", "dlc5::noise/x"): the game's own
+		/// (base and every DLC folder present), the tool's folder, and the overlays, as one sorted set.
+		/// </summary>
+		public List<string> ListAllNoise()
 		{
-			var list = new List<string>();
+			var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			ScanNoise(streamingAssets, set);
+			ScanNoiseFolder(ToolNoiseFolder, "", set);
 			foreach (string root in overlayRoots)
-			{
-				void Scan(string dir, string scope)
-				{
-					if (!Directory.Exists(dir)) return;
-					foreach (string f in Directory.GetFiles(dir, "*.yaml", SearchOption.AllDirectories))
-					{
-						string rel = Path.GetRelativePath(Path.GetDirectoryName(dir), f).Replace(Path.DirectorySeparatorChar, '/');
-						list.Add(scope + rel.Substring(0, rel.Length - 5));
-					}
-				}
-				Scan(Path.Combine(root, "worldgen", "noise"), "");
-				string dlc = Path.Combine(root, "dlc");
-				if (Directory.Exists(dlc))
-					foreach (string d in Directory.GetDirectories(dlc))
-						Scan(Path.Combine(d, "worldgen", "noise"), Path.GetFileName(d) + "::");
-			}
+				ScanNoise(root, set);
+			var list = new List<string>(set);
 			list.Sort(StringComparer.OrdinalIgnoreCase);
 			return list;
+		}
+
+		/// <summary>Noise trees found in the overlays only, as scoped names.</summary>
+		public List<string> ListOverlayNoise()
+		{
+			var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			foreach (string root in overlayRoots)
+				ScanNoise(root, set);
+			var list = new List<string>(set);
+			list.Sort(StringComparer.OrdinalIgnoreCase);
+			return list;
+		}
+
+		/// <summary>Scans a mod-style or StreamingAssets-style root: worldgen/noise and dlc/<id>/worldgen/noise.</summary>
+		private static void ScanNoise(string root, HashSet<string> into)
+		{
+			ScanNoiseFolder(Path.Combine(root, "worldgen", "noise"), "", into);
+			string dlc = Path.Combine(root, "dlc");
+			if (Directory.Exists(dlc))
+				foreach (string d in Directory.GetDirectories(dlc))
+					ScanNoiseFolder(Path.Combine(d, "worldgen", "noise"), Path.GetFileName(d) + "::", into);
+		}
+
+		private static void ScanNoiseFolder(string dir, string scope, HashSet<string> into)
+		{
+			if (!Directory.Exists(dir))
+				return;
+			foreach (string f in Directory.GetFiles(dir, "*.yaml", SearchOption.AllDirectories))
+			{
+				string rel = Path.GetRelativePath(Path.GetDirectoryName(dir), f).Replace(Path.DirectorySeparatorChar, '/');
+				into.Add(scope + rel.Substring(0, rel.Length - 5));
+			}
 		}
 
 		public Preview(string streamingAssets)
@@ -384,8 +414,6 @@ namespace BiomePreview
 		{
 			// A tree can be named by its scoped worldgen name or given as a plain path to a yaml file.
 			string path = File.Exists(treeName) ? treeName : ResolveYaml(treeName);
-			if (!File.Exists(path) && treeName.StartsWith("noise/NaturalBackwalls"))
-				path = Path.Combine(Path.GetDirectoryName(typeof(Preview).Assembly.Location) ?? ".", "..", "..", "..", "..", "src", "NaturalBackwalls", "worldgen", "noise", treeName.Substring("noise/".Length) + ".yaml");
 			if (!File.Exists(path))
 				throw new FileNotFoundException("Noise tree not found", path);
 			var tree = YamlIO.Parse<ProcGen.Noise.Tree>(File.ReadAllText(path), default(FileHandle), OnYamlError);
@@ -430,7 +458,8 @@ namespace BiomePreview
 
 		/// <summary>
 		/// SettingsCache.RewriteWorldgenPathYaml: "dlc5::noise/x" -> dlc/dlc5/worldgen/noise/x.yaml, looked up in
-		/// the overlay folders first and the game's StreamingAssets last.
+		/// the overlay folders first, the game's StreamingAssets next, and for an unscoped noise tree the
+		/// tool's own noise folder last.
 		/// </summary>
 		private string ResolveYaml(string scoped)
 		{
@@ -445,7 +474,11 @@ namespace BiomePreview
 				if (File.Exists(candidate))
 					return candidate;
 			}
-			return Path.Combine(streamingAssets, relative);
+			string game = Path.Combine(streamingAssets, relative);
+			if (File.Exists(game) || scope != "" || !rest.StartsWith("noise/"))
+				return game;
+			string tool = Path.Combine(ToolNoiseFolder, rest.Substring("noise/".Length).Replace('/', Path.DirectorySeparatorChar) + ".yaml");
+			return File.Exists(tool) ? tool : game;
 		}
 
 		private HashSet<string> LoadSolids()
