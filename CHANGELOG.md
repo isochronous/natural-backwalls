@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a preview image, so the mod shows one in the game's mod list.
+
 ## 0.1.0 - 2026-10-09
 
 - First version: natural backwall tiles in every biome, built from the Aquatic Planet Pack's own worldgen data (its backwall noise plus a per-biome element band). New worlds only.
