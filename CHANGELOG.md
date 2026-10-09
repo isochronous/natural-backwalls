@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 - 2026-10-09
 
 - First version: natural backwall tiles in every biome, built from the Aquatic Planet Pack's own worldgen data (its backwall noise plus a per-biome element band). New worlds only.
 - One options row per biome family: a material dropdown offering that biome's solids, and a coverage box (default 0.4, or 0.15 for the denser kelp forest pattern). The Aquatic Planet Pack's own biomes keep their vanilla values as defaults.
