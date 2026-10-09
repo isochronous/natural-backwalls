@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The mod's internal id is now Isochronous.NaturalBackwallsEverywhere. The game sees it as a new mod: enable it again in the Mods menu and check its settings.
+
 ## 0.1.2 - 2026-10-09
 
 - Renamed to Natural Backwalls Everywhere.
