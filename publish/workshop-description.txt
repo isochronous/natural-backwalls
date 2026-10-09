@@ -22,4 +22,4 @@ The Aquatic pack has no special backwall algorithm. Its subworlds name a backwal
 [*]The Aquatic pack's own biomes are listed too, with the pack's values as defaults; leave them alone and their worldgen is untouched, or give them your own material and coverage.
 [/list]
 
-Source and issues: https://github.com/isochronous/natural-backwalls
+Source and issues: https://github.com/isochronous/natural-backwalls-everywhere

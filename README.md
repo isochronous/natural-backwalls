@@ -34,7 +34,7 @@ The mod only adds data to the per-world copy of the worldgen settings and only f
 
 As a local mod:
 
-1. Download `NaturalBackwalls-<version>.zip` from the [latest release](https://github.com/isochronous/natural-backwalls/releases/latest).
+1. Download `NaturalBackwalls-<version>.zip` from the [latest release](https://github.com/isochronous/natural-backwalls-everywhere/releases/latest).
 2. Extract it into a new folder named `NaturalBackwalls` inside the game's local mods folder, so that `mod.yaml` ends up directly inside it (create `local` if it does not exist):
    - Windows: `Documents\Klei\OxygenNotIncluded\mods\local\NaturalBackwalls`
    - Linux: `~/.config/unity3d/Klei/Oxygen Not Included/mods/local/NaturalBackwalls`
@@ -45,8 +45,8 @@ As a local mod:
 Requires the .NET SDK and a copy of the game. The build resolves the game folder from `-p:GameFolder=...`, the `ONI_GAME_FOLDER` environment variable, or the usual Steam locations, and deploys straight into the local mods folder:
 
 ```
-git clone --recurse-submodules https://github.com/isochronous/natural-backwalls.git
-dotnet build natural-backwalls/src/NaturalBackwalls -c Release
+git clone --recurse-submodules https://github.com/isochronous/natural-backwalls-everywhere.git
+dotnet build natural-backwalls-everywhere/src/NaturalBackwalls -c Release
 ```
 
 ## Notes for modders

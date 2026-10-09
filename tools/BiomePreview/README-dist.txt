@@ -5,7 +5,7 @@ Runs the game's own worldgen noise trees and biome band tables for one biome, ou
 shows the foreground, the backwalls, and the numbers (open cells, backwalls placed, backwalls visible).
 It skips everything above the biome level (overworld layout, POIs, borders, rivers, sim settle), so it is
 a rough preview of shape and density, in about a second. Made for the Natural Backwalls Everywhere mod:
-https://github.com/isochronous/natural-backwalls
+https://github.com/isochronous/natural-backwalls-everywhere
 
 Requirements
 ------------
