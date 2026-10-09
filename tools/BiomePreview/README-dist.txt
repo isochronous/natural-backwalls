@@ -4,7 +4,7 @@ BiomePreview - single-biome backwall preview for Oxygen Not Included
 Runs the game's own worldgen noise trees and biome band tables for one biome, outside the game, and
 shows the foreground, the backwalls, and the numbers (open cells, backwalls placed, backwalls visible).
 It skips everything above the biome level (overworld layout, POIs, borders, rivers, sim settle), so it is
-a rough preview of shape and density, in about a second. Made for the Natural Backwalls mod:
+a rough preview of shape and density, in about a second. Made for the Natural Backwalls Everywhere mod:
 https://github.com/isochronous/natural-backwalls
 
 Requirements
@@ -26,7 +26,7 @@ game makes it.
 
 Noise patterns
 --------------
-The pattern list holds the Natural Backwalls patterns first, then every noise tree the game has (base
+The pattern list holds the Natural Backwalls Everywhere patterns first, then every noise tree the game has (base
 game and any DLC you own), then whatever is in the folder worldgen\noise next to the exe. The mod's
 own trees ship in that folder. To preview your own tree, drop a yaml in the game's worldgen/noise
 format into that folder, or use "Add noise tree yaml...", which copies the file there for you.

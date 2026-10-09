@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Renamed to Natural Backwalls Everywhere.
+
 ## 0.1.1 - 2026-10-09
 
 - Added a preview image, so the mod shows one in the game's mod list.
